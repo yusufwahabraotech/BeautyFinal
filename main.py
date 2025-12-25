@@ -1,4 +1,5 @@
 import os
+import sys
 import torch
 import cv2
 import numpy as np
@@ -9,18 +10,21 @@ import uvicorn
 import trimesh
 from scipy.spatial import ConvexHull
 import tempfile
-import sys
 
-# Add repositories to path
+# Add repositories to path FIRST before any imports
 sys.path.insert(0, '/app/pifuhd')
 sys.path.insert(0, '/app/lightweight-human-pose-estimation.pytorch')
 
-# Import pose estimation modules
-from models.with_mobilenet import PoseEstimationWithMobileNet
-from modules.keypoints import extract_keypoints, group_keypoints
-from modules.load_state import load_state
-from modules.pose import Pose
-import demo
+try:
+    # Import pose estimation modules
+    from models.with_mobilenet import PoseEstimationWithMobileNet
+    from modules.keypoints import extract_keypoints, group_keypoints
+    from modules.load_state import load_state
+    from modules.pose import Pose
+    import demo
+except ImportError as e:
+    print(f"Warning: Could not import pose estimation modules: {e}")
+    print("The API may not function without these modules.")
 
 app = FastAPI(title="Body Measurement API", version="1.0.0")
 
@@ -35,17 +39,21 @@ app.add_middleware(
 
 # Load pose estimation model at startup
 print("Loading pose estimation model...")
-net = PoseEstimationWithMobileNet()
-checkpoint_path = '/app/lightweight-human-pose-estimation.pytorch/checkpoint_iter_370000.pth'
-checkpoint = torch.load(checkpoint_path, map_location='cpu')
-load_state(net, checkpoint)
+try:
+    net = PoseEstimationWithMobileNet()
+    checkpoint_path = '/app/lightweight-human-pose-estimation.pytorch/checkpoint_iter_370000.pth'
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    load_state(net, checkpoint)
 
-# Move to GPU if available
-if torch.cuda.is_available():
-    net = net.cuda()
-    print("✓ Pose estimation model loaded to GPU")
-else:
-    print("✓ Pose estimation model loaded to CPU (no GPU available)")
+    # Move to GPU if available
+    if torch.cuda.is_available():
+        net = net.cuda()
+        print("✓ Pose estimation model loaded to GPU")
+    else:
+        print("✓ Pose estimation model loaded to CPU (no GPU available)")
+except Exception as e:
+    print(f"Warning: Could not load pose estimation model: {e}")
+    net = None
 
 # ==================== Helper Functions ====================
 

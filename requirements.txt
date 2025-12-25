@@ -8,6 +8,7 @@ fastapi
 uvicorn[standard]
 python-multipart
 trimesh
-numpy
+numpy<2.0
 scipy
 opencv-python-headless
+pycocotools
