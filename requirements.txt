@@ -1,10 +1,9 @@
-torch==2.2.0
-https://github.com/facebookresearch/pytorch3d
+torch
 torchvision
 torchaudio
 fvcore
 iopath
-scikit-image>=0.21.0
+scikit-image
 fastapi
 uvicorn[standard]
 python-multipart
